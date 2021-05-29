@@ -7,3 +7,5 @@ A sand simulation game
 
 - `Enter`: Reset universe
 - `Mouse Wheel`: Change brush size
+- `1`: use Sand
+- `2`: use Water

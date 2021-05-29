@@ -4,6 +4,7 @@ mod universe;
 mod utils;
 
 use macroquad::prelude::*;
+use species::Species;
 use universe::Universe;
 
 fn window_conf() -> Conf {
@@ -19,6 +20,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
     let mut brush_size = 30.;
+    let mut brush_mat = Species::Sand;
     let mut universe = Universe::new(screen_width() as i32, screen_height() as i32);
     loop {
         let (mx, my) = mouse_position();
@@ -45,16 +47,23 @@ async fn main() {
         );
 
         if is_mouse_button_down(MouseButton::Left) {
-            universe.paint(mx as i32, my as i32, brush_size);
+            universe.paint(mx as i32, my as i32, brush_size, brush_mat);
         }
         if is_key_pressed(KeyCode::Enter) {
             universe = Universe::new(screen_width() as i32, screen_height() as i32);
         }
 
-        draw_circle_lines(mx, my, (brush_size / 2.) as f32, 1., BLACK);
+        match get_last_key_pressed() {
+            Some(KeyCode::Key1) => brush_mat = Species::Sand,
+            Some(KeyCode::Key2) => brush_mat = Species::Water,
+            _ => {}
+        }
+
         if wy != 0. {
             brush_size = 5.0f64.max(100.0f64.min(brush_size + 5. * wy as f64));
         }
+
+        draw_circle_lines(mx, my, (brush_size / 2.) as f32, 1., BLACK);
         next_frame().await
     }
 }

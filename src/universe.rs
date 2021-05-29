@@ -70,7 +70,7 @@ impl Universe {
         }
     }
 
-    pub fn paint(&mut self, x: i32, y: i32, size: f64) {
+    pub fn paint(&mut self, x: i32, y: i32, size: f64, mat: Species) {
         let radius: f64 = size / 2.0;
 
         let floor = (radius + 1.0) as i32;
@@ -90,7 +90,7 @@ impl Universe {
                     continue;
                 }
                 if self.get_cell(px, py).specie() == Species::Empty {
-                    self.cells[i] = Cell::new(Species::Sand, px, py, self.generation)
+                    self.cells[i] = Cell::new(mat, px, py, self.generation)
                 }
             }
         }
@@ -98,6 +98,14 @@ impl Universe {
 
     pub fn generation(&self) -> i32 {
         self.generation
+    }
+
+    pub fn replace_cell(&mut self, a: Cell, b: Cell) {
+        let (a_x, a_y) = a.coords();
+        let (b_x, b_y) = b.coords();
+
+        self.set(a_x, a_y, Cell::new(b.specie(), a_x, a_y, b.clock() + 1));
+        self.set(b_x, b_y, Cell::new(a.specie(), b_x, b_y, a.clock() + 1));
     }
 
     pub fn update_cell(&mut self, dx: i32, dy: i32, cell: Cell) {

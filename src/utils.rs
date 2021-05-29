@@ -7,6 +7,10 @@ pub fn value_of(color: u32) -> (f32, f32, f32) {
     (r, g, b)
 }
 
+pub fn rand_dir() -> i32 {
+    (rand() as i32 % 3) - 1
+}
+
 pub fn rand_dir_2() -> i32 {
     if (rand() % 2) == 0 {
         -1
