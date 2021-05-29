@@ -1,0 +1,13 @@
+[package]
+name = "rusty-city"
+version = "0.1.0"
+authors = ["Alvaro Tinoco <alv_tinoco_97@hotmail.com>"]
+edition = "2018"
+readme = "README.md"
+repository = "https://github.com/MrMarble/rusty-city"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+macroquad = "0.3.4"
+rgb = "0.8.27"
