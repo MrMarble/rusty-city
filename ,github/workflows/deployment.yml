@@ -1,0 +1,34 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  release:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/cehckout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Check
+        run: cargo check
+
+      - name: Build wasm binary 🔧
+        run: cargo build --release --target wasm32-unknown-unknown && mkdir -p dist && mv target/wasm32-unknown-unknown/release/rusty-city.wasm dist/
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.3
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: build # The folder the action should deploy.
