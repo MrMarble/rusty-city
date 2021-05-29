@@ -10,3 +10,4 @@ A sand simulation game
 - `0`: erase
 - `1`: use Sand
 - `2`: use Water
+- `3`: use Wall

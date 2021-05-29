@@ -57,6 +57,7 @@ async fn main() {
             Some(KeyCode::Key0) => brush_mat = Species::Empty,
             Some(KeyCode::Key1) => brush_mat = Species::Sand,
             Some(KeyCode::Key2) => brush_mat = Species::Water,
+            Some(KeyCode::Key3) => brush_mat = Species::Wall,
             _ => {}
         }
 
