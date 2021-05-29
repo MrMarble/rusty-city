@@ -10,4 +10,3 @@ repository = "https://github.com/MrMarble/rusty-city"
 
 [dependencies]
 macroquad = "0.3.4"
-rgb = "0.8.27"
