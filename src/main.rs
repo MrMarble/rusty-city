@@ -18,8 +18,12 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut brush_size = 30.;
     let mut universe = Universe::new(screen_width() as i32, screen_height() as i32);
     loop {
+        let (mx, my) = mouse_position();
+        let (_, wy) = mouse_wheel();
+
         clear_background(WHITE);
 
         universe.tick();
@@ -39,14 +43,18 @@ async fn main() {
             20.0,
             DARKGRAY,
         );
+
         if is_mouse_button_down(MouseButton::Left) {
-            let pos = mouse_position();
-            universe.paint(pos.0 as i32, pos.1 as i32);
+            universe.paint(mx as i32, my as i32, brush_size);
         }
         if is_key_pressed(KeyCode::Enter) {
             universe = Universe::new(screen_width() as i32, screen_height() as i32);
         }
 
+        draw_circle_lines(mx, my, (brush_size / 2.) as f32, 1., BLACK);
+        if wy != 0. {
+            brush_size = 5.0f64.max(100.0f64.min(brush_size + 5. * wy as f64));
+        }
         next_frame().await
     }
 }

@@ -55,9 +55,8 @@ impl Universe {
         t.join().unwrap();
     }
 
-    pub fn paint(&mut self, x: i32, y: i32) {
-        let size = 30;
-        let radius: f64 = (size as f64) / 2.0;
+    pub fn paint(&mut self, x: i32, y: i32, size: f64) {
+        let radius: f64 = size / 2.0;
 
         let floor = (radius + 1.0) as i32;
         let ciel = (radius + 1.5) as i32;
