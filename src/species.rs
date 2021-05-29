@@ -7,8 +7,8 @@ use crate::{
 #[repr(u32)]
 pub enum Species {
     Empty = 0xFFFFFF,
-    Sand = 0xC2B280,
     Wall = 0x000000,
+    Sand = 0xC2B280,
 }
 
 impl Species {

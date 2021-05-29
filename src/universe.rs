@@ -48,6 +48,7 @@ impl Universe {
                 if pixel.specie() != Species::Empty {
                     let (r, g, b) = value_of(pixel.specie() as u32);
                     let (x, y) = pixel.coords();
+
                     draw_rectangle(x as f32, y as f32, 1., 1., Color::new(r, g, b, 1.));
                 }
             }
