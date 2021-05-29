@@ -21,6 +21,9 @@ jobs:
           default: true
           override: true
 
+      - name: Install wasm toolchain
+        run: rustup target add wasm32-unknown-unknown
+
       - name: Build wasm binary 🔧
         run: cargo build --release --target wasm32-unknown-unknown && mkdir -p build && mv target/wasm32-unknown-unknown/release/rusty-city.wasm build/
 
