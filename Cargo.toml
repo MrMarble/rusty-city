@@ -8,5 +8,8 @@ repository = "https://github.com/MrMarble/rusty-city"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.dev.package.'*']
+opt-level = 3 # Compile dependencies in release mode for 'cargo run' to improve debug performance
+
 [dependencies]
 macroquad = "0.3.4"

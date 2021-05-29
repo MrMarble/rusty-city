@@ -39,6 +39,7 @@ impl Universe {
         self.generation += 1
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn render(&self) {
         let (tx, rx): (Sender<Vec<Cell>>, Receiver<Vec<Cell>>) = channel();
         let t = thread::spawn(move || {
@@ -53,6 +54,17 @@ impl Universe {
         });
         tx.send(self.cells.clone()).unwrap();
         t.join().unwrap();
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn render(&self) {
+        for pixel in &self.cells {
+            if pixel.specie() != Species::Empty {
+                let (r, g, b) = value_of(pixel.specie() as u32);
+                let (x, y) = pixel.coords();
+                draw_rectangle(x as f32, y as f32, 1., 1., Color::new(r, g, b, 1.));
+            }
+        }
     }
 
     pub fn paint(&mut self, x: i32, y: i32, size: f64) {
