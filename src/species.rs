@@ -1,7 +1,4 @@
-use crate::{
-    cell::{Cell, EMPTY_CELL},
-    universe::Universe,
-};
+use crate::{cell::Cell, universe::Universe};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[repr(u32)]
@@ -29,25 +26,10 @@ fn update_sand(cell: Cell, universe: &mut Universe) {
     let nbr = universe.get_cell(x, y + 1);
 
     if nbr.specie() == Species::Empty {
-        universe.set(x, y, EMPTY_CELL);
-        universe.set(
-            x,
-            y + 1,
-            Cell::new(cell.specie(), x, y + 1, cell.clock() + 1),
-        );
+        universe.update_cell(0, 1, cell);
     } else if universe.get_cell(x + 1, y + 1).specie() == Species::Empty {
-        universe.set(x, y, EMPTY_CELL);
-        universe.set(
-            x + 1,
-            y + 1,
-            Cell::new(cell.specie(), x + 1, y + 1, cell.clock() + 1),
-        );
+        universe.update_cell(1, 1, cell);
     } else if universe.get_cell(x - 1, y + 1).specie() == Species::Empty {
-        universe.set(x, y, EMPTY_CELL);
-        universe.set(
-            x - 1,
-            y + 1,
-            Cell::new(cell.specie(), x - 1, y + 1, cell.clock() + 1),
-        );
+        universe.update_cell(-1, 1, cell);
     }
 }

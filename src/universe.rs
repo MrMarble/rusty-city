@@ -5,6 +5,8 @@ use crate::{
     species::Species,
     utils::value_of,
 };
+
+#[cfg(not(target_arch = "wasm32"))]
 use std::{
     sync::mpsc::{channel, Receiver, Sender},
     thread,
@@ -96,6 +98,16 @@ impl Universe {
 
     pub fn generation(&self) -> i32 {
         self.generation
+    }
+
+    pub fn update_cell(&mut self, dx: i32, dy: i32, cell: Cell) {
+        let (x, y) = cell.coords();
+        self.set(x, y, EMPTY_CELL);
+        self.set(
+            x + dx,
+            y + dy,
+            Cell::new(cell.specie(), x + dx, y + dy, cell.clock() + 1),
+        );
     }
 
     pub fn set(&mut self, x: i32, y: i32, cell: Cell) {
