@@ -18,12 +18,12 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut u = Universe::new(screen_width() as i32, screen_height() as i32);
+    let mut universe = Universe::new(screen_width() as i32, screen_height() as i32);
     loop {
         clear_background(WHITE);
 
-        u.tick();
-        u.render();
+        universe.tick();
+        universe.render();
 
         draw_text(
             &format!("{}", macroquad::time::get_fps()),
@@ -41,10 +41,10 @@ async fn main() {
         );
         if is_mouse_button_down(MouseButton::Left) {
             let pos = mouse_position();
-            u.paint(pos.0 as i32, pos.1 as i32);
+            universe.paint(pos.0 as i32, pos.1 as i32);
         }
         if is_key_pressed(KeyCode::Enter) {
-            u = Universe::new(screen_width() as i32, screen_height() as i32);
+            universe = Universe::new(screen_width() as i32, screen_height() as i32);
         }
 
         next_frame().await

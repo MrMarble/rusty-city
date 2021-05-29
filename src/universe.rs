@@ -14,7 +14,7 @@ pub struct Universe {
     width: i32,
     height: i32,
     cells: Vec<Cell>,
-    pub generation: i32,
+    generation: i32,
 }
 
 impl Universe {
@@ -40,28 +40,19 @@ impl Universe {
     }
 
     pub fn render(&self) {
-        //let mut pixels: Vec<RGB8> = vec![];
         let (tx, rx): (Sender<Vec<Cell>>, Receiver<Vec<Cell>>) = channel();
         let t = thread::spawn(move || {
             let pixels = rx.recv().unwrap();
             for pixel in pixels {
-                //pixels.push(value_of(pixel.specie as u32));
-                if pixel.specie != Species::Empty {
-                    let (r, g, b) = value_of(pixel.specie as u32);
-                    draw_rectangle(
-                        pixel.x as f32,
-                        pixel.y as f32,
-                        1.,
-                        1.,
-                        Color::new(r, g, b, 1.),
-                    );
+                if pixel.specie() != Species::Empty {
+                    let (r, g, b) = value_of(pixel.specie() as u32);
+                    let (x, y) = pixel.coords();
+                    draw_rectangle(x as f32, y as f32, 1., 1., Color::new(r, g, b, 1.));
                 }
             }
         });
         tx.send(self.cells.clone()).unwrap();
         t.join().unwrap();
-        //let texture = Texture2D::from_rgba8(600, 600, &pixels.as_bytes());
-        //draw_texture(texture, 0., 0., WHITE);
     }
 
     pub fn paint(&mut self, x: i32, y: i32) {
@@ -84,16 +75,15 @@ impl Universe {
                 if px < 0 || px > self.width - 1 || py < 0 || py > self.height - 1 {
                     continue;
                 }
-                if self.get_cell(px, py).specie == Species::Empty {
-                    self.cells[i] = Cell {
-                        specie: Species::Sand,
-                        x: px,
-                        y: py,
-                        clock: self.generation,
-                    }
+                if self.get_cell(px, py).specie() == Species::Empty {
+                    self.cells[i] = Cell::new(Species::Sand, px, py, self.generation)
                 }
             }
         }
+    }
+
+    pub fn generation(&self) -> i32 {
+        self.generation
     }
 
     pub fn set(&mut self, x: i32, y: i32, cell: Cell) {
@@ -101,19 +91,15 @@ impl Universe {
         self.cells[index] = cell;
     }
 
-    fn get_index(&self, x: i32, y: i32) -> usize {
-        (x * self.height + y) as usize
-    }
     pub fn get_cell(&self, x: i32, y: i32) -> Cell {
         if x >= self.width || x < 0 || y >= self.height || y < 0 {
-            return Cell {
-                specie: Species::Wall,
-                x,
-                y,
-                clock: 0,
-            };
+            return Cell::new(Species::Wall, x, y, 0);
         }
         let i = self.get_index(x, y);
         self.cells[i]
+    }
+
+    fn get_index(&self, x: i32, y: i32) -> usize {
+        (x * self.height + y) as usize
     }
 }

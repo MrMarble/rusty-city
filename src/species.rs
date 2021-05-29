@@ -14,51 +14,40 @@ pub enum Species {
 impl Species {
     pub fn update(&self, cell: Cell, universe: &mut Universe) {
         match self {
-            Self::Sand => {
-                if cell.clock - universe.generation == 1 {
-                    return;
-                }
-                let nbr = universe.get_cell(cell.x, cell.y + 1);
-
-                if nbr.specie == Species::Empty {
-                    universe.set(cell.x, cell.y, EMPTY_CELL);
-                    universe.set(
-                        cell.x,
-                        cell.y + 1,
-                        Cell {
-                            specie: cell.specie,
-                            x: cell.x,
-                            y: cell.y + 1,
-                            clock: cell.clock + 1,
-                        },
-                    );
-                } else if universe.get_cell(cell.x + 1, cell.y + 1).specie == Species::Empty {
-                    universe.set(cell.x, cell.y, EMPTY_CELL);
-                    universe.set(
-                        cell.x + 1,
-                        cell.y + 1,
-                        Cell {
-                            specie: cell.specie,
-                            x: cell.x + 1,
-                            y: cell.y + 1,
-                            clock: cell.clock + 1,
-                        },
-                    );
-                } else if universe.get_cell(cell.x - 1, cell.y + 1).specie == Species::Empty {
-                    universe.set(cell.x, cell.y, EMPTY_CELL);
-                    universe.set(
-                        cell.x - 1,
-                        cell.y + 1,
-                        Cell {
-                            specie: cell.specie,
-                            x: cell.x - 1,
-                            y: cell.y + 1,
-                            clock: cell.clock + 1,
-                        },
-                    );
-                }
-            }
+            Self::Sand => update_sand(cell, universe),
             _ => {}
         }
+    }
+}
+
+fn update_sand(cell: Cell, universe: &mut Universe) {
+    if cell.clock() - universe.generation() == 1 {
+        return;
+    }
+    let (x, y) = cell.coords();
+
+    let nbr = universe.get_cell(x, y + 1);
+
+    if nbr.specie() == Species::Empty {
+        universe.set(x, y, EMPTY_CELL);
+        universe.set(
+            x,
+            y + 1,
+            Cell::new(cell.specie(), x, y + 1, cell.clock() + 1),
+        );
+    } else if universe.get_cell(x + 1, y + 1).specie() == Species::Empty {
+        universe.set(x, y, EMPTY_CELL);
+        universe.set(
+            x + 1,
+            y + 1,
+            Cell::new(cell.specie(), x + 1, y + 1, cell.clock() + 1),
+        );
+    } else if universe.get_cell(x - 1, y + 1).specie() == Species::Empty {
+        universe.set(x, y, EMPTY_CELL);
+        universe.set(
+            x - 1,
+            y + 1,
+            Cell::new(cell.specie(), x - 1, y + 1, cell.clock() + 1),
+        );
     }
 }
