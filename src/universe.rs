@@ -89,7 +89,7 @@ impl Universe {
                 if px < 0 || px > self.width - 1 || py < 0 || py > self.height - 1 {
                     continue;
                 }
-                if self.get_cell(px, py).specie() == Species::Empty {
+                if mat == Species::Empty || self.get_cell(px, py).specie() == Species::Empty {
                     self.cells[i] = Cell::new(mat, px, py, self.generation)
                 }
             }

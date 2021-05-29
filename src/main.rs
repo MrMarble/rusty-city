@@ -54,6 +54,7 @@ async fn main() {
         }
 
         match get_last_key_pressed() {
+            Some(KeyCode::Key0) => brush_mat = Species::Empty,
             Some(KeyCode::Key1) => brush_mat = Species::Sand,
             Some(KeyCode::Key2) => brush_mat = Species::Water,
             _ => {}
