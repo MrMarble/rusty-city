@@ -4,8 +4,7 @@ branches:
 plugins:
   - "@semantic-release/commit-analyzer"
   - "@semantic-release/release-notes-generator"
-  - "@semantic-release/github"
-  - - "@semantic-release/git"
+  - - "@semantic-release/github"
     - assets:
         - "./target/release/rusty-city"
         - "./target/x86_64-pc-windows-gnu/release/rusty-city.exe"
