@@ -1,0 +1,11 @@
+branches:
+  - main
+  - master
+plugins:
+  - "@semantic-release/commit-analyzer"
+  - "@semantic-release/notes-generator"
+  - "@semantic-release/github"
+  - - "@semantic-release/git"
+    - assets:
+        - "./target/release/rusty-city"
+        - "./target/x86_64-pc-windows-gnu/release/rusty-city.exe"

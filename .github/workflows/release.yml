@@ -1,0 +1,44 @@
+name: Release
+on:
+  push:
+    branches:
+      - master
+      - main
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
+      - name: Install system dependencies
+        run: apt install pkg-config libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev mingw-w64
+
+      - name: Cargo install
+        run: cargo install
+
+      - name: Build linux binary
+        run: cargo build --release
+
+      - name: Build windows binary
+        run: cargo build --target x86_64-pc-windows-gnu --release
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
