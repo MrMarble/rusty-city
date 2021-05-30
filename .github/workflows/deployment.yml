@@ -6,8 +6,8 @@ on:
       - main
       - master
     paths:
-      - "./src"
-      - "./Cargo.*"
+      - "src/**"
+      - "Cargo.*"
 
 jobs:
   release:
