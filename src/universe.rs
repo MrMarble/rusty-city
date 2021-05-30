@@ -7,16 +7,14 @@ use crate::{
 };
 
 #[cfg(not(target_arch = "wasm32"))]
-use std::{
-    sync::mpsc::{channel, Receiver, Sender},
-    thread,
-};
+const NTHREADS: usize = 4;
 
 pub struct Universe {
     width: i32,
     height: i32,
     cells: Vec<Cell>,
     generation: i32,
+    pub non_empty_cells: u32,
 }
 
 impl Universe {
@@ -28,6 +26,7 @@ impl Universe {
             height,
             cells,
             generation: 0,
+            non_empty_cells: 0,
         }
     }
 
@@ -43,20 +42,40 @@ impl Universe {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub fn render(&self) {
-        let (tx, rx): (Sender<Vec<Cell>>, Receiver<Vec<Cell>>) = channel();
-        let t = thread::spawn(move || {
-            let pixels = rx.recv().unwrap();
-            for pixel in pixels {
-                if pixel.specie() != Species::Empty {
-                    let (r, g, b) = value_of(pixel.specie() as u32);
-                    let (x, y) = pixel.coords();
+        let num_taks_per_thread = self.cells.len() / NTHREADS;
 
-                    draw_rectangle(x as f32, y as f32, 1., 1., Color::new(r, g, b, 1.));
-                }
-            }
-        });
-        tx.send(self.cells.clone()).unwrap();
-        t.join().unwrap();
+        crossbeam::scope(|scope| {
+            let threads: Vec<_> = self
+                .cells
+                .chunks(num_taks_per_thread)
+                .map(|chunk| {
+                    scope.spawn(move |_| {
+                        chunk.iter().cloned().map(|c| {
+                            if c.specie() != Species::Empty {
+                                let (r, g, b) = value_of(c.specie() as u32);
+                                let (x, y) = c.coords();
+                                return (x as f32, y as f32, Color::new(r, g, b, 1.));
+                            }
+                            (
+                                0.,
+                                0.,
+                                Color {
+                                    ..Default::default()
+                                },
+                            )
+                        })
+                    })
+                })
+                .collect();
+            threads.into_iter().for_each(|t| {
+                t.join().unwrap().for_each(|p| {
+                    if p.0 != 0. {
+                        draw_rectangle(p.0, p.1, 1., 1., p.2)
+                    }
+                })
+            });
+        })
+        .unwrap();
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -91,6 +110,12 @@ impl Universe {
                 }
                 if mat == Species::Empty || self.get_cell(px, py).specie() == Species::Empty {
                     self.cells[i] = Cell::new(mat, px, py, self.generation)
+                }
+
+                if mat == Species::Empty {
+                    self.non_empty_cells -= 1;
+                } else {
+                    self.non_empty_cells += 1;
                 }
             }
         }

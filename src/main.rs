@@ -38,6 +38,15 @@ async fn main() {
             30.0,
             DARKGRAY,
         );
+
+        draw_text(
+            &format!("{}", universe.non_empty_cells),
+            20.0,
+            70.0,
+            30.0,
+            DARKGRAY,
+        );
+
         draw_text(
             &format!("{}x{}", screen_width(), screen_height()),
             20.0,
