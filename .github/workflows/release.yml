@@ -26,18 +26,23 @@ jobs:
           default: true
           override: true
 
+      - name: Add rustup target
+        run: rustup target add x86_64-pc-windows-gnu
+
+      - uses: Swatinem/rust-cache@v1
+
       - name: Install system dependencies
         run: sudo apt install pkg-config libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev mingw-w64
+
+      - run: cargo check
 
       - name: Build linux binary
         run: cargo build --release
 
       - name: Build windows binary
-        run: |
-          rustup target add x86_64-pc-windows-gnu
-          cargo build --target x86_64-pc-windows-gnu --release
+        run: cargo build --target x86_64-pc-windows-gnu --release
 
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx -p @semantic-release/gitlab -p @semantic-release/git semantic-release
+        run: npx -p @semantic-release/gitlab -p @semantic-release/git -p semantic-release semantic-release
