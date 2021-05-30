@@ -27,7 +27,7 @@ jobs:
           override: true
 
       - name: Install system dependencies
-        run: apt install pkg-config libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev mingw-w64
+        run: sudo apt install pkg-config libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev mingw-w64
 
       - name: Cargo install
         run: cargo install
