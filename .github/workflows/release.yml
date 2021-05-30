@@ -33,7 +33,9 @@ jobs:
         run: cargo build --release
 
       - name: Build windows binary
-        run: cargo build --target x86_64-pc-windows-gnu --release
+        run: |
+          rustup target add x86_64-pc-windows-gnu
+          cargo build --target x86_64-pc-windows-gnu --release
 
       - name: Release
         env:
