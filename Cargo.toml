@@ -14,4 +14,3 @@ opt-level = 3 # Compile dependencies in release mode for 'cargo run' to improve 
 
 [dependencies]
 macroquad = "0.3.4"
-crossbeam = "0.8.1"
