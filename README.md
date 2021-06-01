@@ -1,7 +1,7 @@
 # Rusty City
 A work in progress sand simulation game
 
-[](assets/demo.gif)
+![](./assets/demo.gif)
 
 ## Controls
 
