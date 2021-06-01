@@ -1,7 +1,7 @@
 # Rusty City
-A sand simulation game
+A work in progress sand simulation game
 
-## WIP
+[](assets/demo.gif)
 
 ## Controls
 
