@@ -1,4 +1,5 @@
 mod cell;
+mod debug;
 mod species;
 mod universe;
 mod utils;
@@ -59,6 +60,7 @@ async fn main() {
             draw_circle_lines(mx, my, brush_size / 2., 1., BLACK);
         }
 
+        debug::debug(&universe);
         next_frame().await
     }
 }
