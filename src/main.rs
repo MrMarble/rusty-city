@@ -25,57 +25,40 @@ async fn main() {
     let mut universe = Universe::new(screen_width(), screen_height(), scale);
     loop {
         let (mx, my) = mouse_position();
-        let (_, wy) = mouse_wheel();
 
         clear_background(WHITE);
 
         universe.tick();
         universe.render();
 
-        draw_text(
-            &format!("{}", macroquad::time::get_fps()),
-            20.0,
-            20.0,
-            30.0,
-            DARKGRAY,
-        );
+        {
+            // Inputs
+            if is_mouse_button_down(MouseButton::Left) {
+                universe.paint(mx / scale, my / scale, brush_size, brush_mat);
+            }
+            if is_key_pressed(KeyCode::Enter) {
+                universe = Universe::new(screen_width(), screen_height(), scale);
+            }
 
-        draw_text(
-            &format!("{}", universe.non_empty_cells),
-            20.0,
-            70.0,
-            30.0,
-            DARKGRAY,
-        );
-
-        draw_text(
-            &format!("{}x{}", screen_width(), screen_height()),
-            20.0,
-            50.0,
-            20.0,
-            DARKGRAY,
-        );
-
-        if is_mouse_button_down(MouseButton::Left) {
-            universe.paint(mx / scale, my / scale, brush_size, brush_mat);
-        }
-        if is_key_pressed(KeyCode::Enter) {
-            universe = Universe::new(screen_width(), screen_height(), scale);
+            match get_last_key_pressed() {
+                Some(KeyCode::Key0) => brush_mat = Species::Empty,
+                Some(KeyCode::Key1) => brush_mat = Species::Sand,
+                Some(KeyCode::Key2) => brush_mat = Species::Water,
+                Some(KeyCode::Key3) => brush_mat = Species::Wall,
+                _ => {}
+            }
         }
 
-        match get_last_key_pressed() {
-            Some(KeyCode::Key0) => brush_mat = Species::Empty,
-            Some(KeyCode::Key1) => brush_mat = Species::Sand,
-            Some(KeyCode::Key2) => brush_mat = Species::Water,
-            Some(KeyCode::Key3) => brush_mat = Species::Wall,
-            _ => {}
+        {
+            // Change brush size
+            let (_, wy) = mouse_wheel();
+
+            if wy != 0. {
+                brush_size = 5f32.max(100f32.min(brush_size + 5. * wy));
+            }
+            draw_circle_lines(mx, my, brush_size / 2., 1., BLACK);
         }
 
-        if wy != 0. {
-            brush_size = 5f32.max(100f32.min(brush_size + 5. * wy));
-        }
-
-        draw_circle_lines(mx, my, brush_size / 2., 1., BLACK);
         next_frame().await
     }
 }
