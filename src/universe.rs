@@ -76,13 +76,17 @@ impl Universe {
                 if px < 0 || px > self.width - 1 || py < 0 || py > self.height - 1 {
                     continue;
                 }
-                if mat == Species::Empty || self.get_cell(px, py).specie() == Species::Empty {
+
+                let current_specie = self.get_cell(px, py).specie();
+                if mat == current_specie {
+                    continue;
+                } else {
                     self.cells[i] = Cell::new(mat, self.generation)
                 }
 
                 if mat == Species::Empty {
                     self.non_empty_cells -= 1;
-                } else {
+                } else if !(current_specie != Species::Empty) {
                     self.non_empty_cells += 1;
                 }
             }
