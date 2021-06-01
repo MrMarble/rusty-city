@@ -20,8 +20,9 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
     let mut brush_size = 30.;
+    let scale: f32 = 5.;
     let mut brush_mat = Species::Sand;
-    let mut universe = Universe::new(screen_width() as i32, screen_height() as i32);
+    let mut universe = Universe::new(screen_width() as i32, screen_height() as i32, scale);
     loop {
         let (mx, my) = mouse_position();
         let (_, wy) = mouse_wheel();
@@ -56,10 +57,15 @@ async fn main() {
         );
 
         if is_mouse_button_down(MouseButton::Left) {
-            universe.paint(mx as i32, my as i32, brush_size, brush_mat);
+            universe.paint(
+                mx as i32 / scale as i32,
+                my as i32 / scale as i32,
+                brush_size,
+                brush_mat,
+            );
         }
         if is_key_pressed(KeyCode::Enter) {
-            universe = Universe::new(screen_width() as i32, screen_height() as i32);
+            universe = Universe::new(screen_width() as i32, screen_height() as i32, scale);
         }
 
         match get_last_key_pressed() {

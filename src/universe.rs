@@ -14,17 +14,21 @@ pub struct Universe {
     height: i32,
     cells: Vec<Cell>,
     generation: i32,
+    scale: f32,
     pub non_empty_cells: u32,
 }
 
 impl Universe {
-    pub fn new(width: i32, height: i32) -> Universe {
-        let cells = (0..width * height).map(|_| EMPTY_CELL).collect();
+    pub fn new(width: i32, height: i32, scale: f32) -> Universe {
+        let s_width = width / scale as i32;
+        let s_height = height / scale as i32;
+        let cells = (0..s_width * s_height).map(|_| EMPTY_CELL).collect();
 
         Universe {
-            width,
-            height,
+            width: s_width,
+            height: s_height,
             cells,
+            scale,
             generation: 0,
             non_empty_cells: 0,
         }
@@ -70,7 +74,13 @@ impl Universe {
             threads.into_iter().for_each(|t| {
                 t.join().unwrap().for_each(|p| {
                     if p.0 != 0. {
-                        draw_rectangle(p.0, p.1, 1., 1., p.2)
+                        draw_rectangle(
+                            p.0 * self.scale,
+                            p.1 * self.scale,
+                            self.scale,
+                            self.scale,
+                            p.2,
+                        )
                     }
                 })
             });
@@ -84,13 +94,19 @@ impl Universe {
             if pixel.specie() != Species::Empty {
                 let (r, g, b) = value_of(pixel.specie() as u32);
                 let (x, y) = pixel.coords();
-                draw_rectangle(x as f32, y as f32, 1., 1., Color::new(r, g, b, 1.));
+                draw_rectangle(
+                    x as f32 * self.scale,
+                    y as f32 * self.scale,
+                    self.scale,
+                    self.scale,
+                    Color::new(r, g, b, 1.),
+                );
             }
         }
     }
 
     pub fn paint(&mut self, x: i32, y: i32, size: f64, mat: Species) {
-        let radius: f64 = size / 2.0;
+        let radius: f64 = size / 2.0 / self.scale as f64;
 
         let floor = (radius + 1.0) as i32;
         let ciel = (radius + 1.5) as i32;
