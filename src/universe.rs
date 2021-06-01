@@ -131,12 +131,40 @@ impl Universe {
     }
 
     pub fn get_position(&self, index: i32) -> Vec2 {
-        let x = index / self.width;
-        let y = index % self.height;
+        let x = index % self.width;
+        let y = index / self.width;
         vec2(x as f32, y as f32)
     }
 
     fn get_index(&self, x: i32, y: i32) -> usize {
-        (x * self.height + y) as usize
+        (x + self.width * y) as usize
+    }
+}
+
+mod tests {
+    #[allow(unused_imports)]
+    use super::*;
+
+    #[test]
+    fn new_universe() {
+        let u = Universe::new(433., 367., 5.);
+        for i in 0..u.cells.len() {
+            let xy = u.get_position(i as i32);
+
+            let x = i % u.width as usize;
+            let y = i / u.width as usize;
+
+            assert_eq!((xy.x as usize, xy.y as usize), (x, y));
+            assert_eq!(
+                u.get_index(xy.x as i32, xy.y as i32),
+                u.get_index(x as i32, y as i32),
+                "Testing get_position"
+            );
+            assert_eq!(
+                u.get_index(xy.x as i32, xy.y as i32),
+                i,
+                "Testing get_index"
+            );
+        }
     }
 }
