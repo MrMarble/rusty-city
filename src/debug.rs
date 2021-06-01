@@ -1,6 +1,5 @@
 use macroquad::experimental::collections::storage;
 
-use macroquad::ui::Skin;
 use macroquad::{
     hash,
     prelude::*,
