@@ -19,10 +19,10 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut brush_size = 30.;
+    let mut brush_size = 30f32;
     let scale: f32 = 5.;
     let mut brush_mat = Species::Sand;
-    let mut universe = Universe::new(screen_width() as i32, screen_height() as i32, scale);
+    let mut universe = Universe::new(screen_width(), screen_height(), scale);
     loop {
         let (mx, my) = mouse_position();
         let (_, wy) = mouse_wheel();
@@ -57,15 +57,10 @@ async fn main() {
         );
 
         if is_mouse_button_down(MouseButton::Left) {
-            universe.paint(
-                mx as i32 / scale as i32,
-                my as i32 / scale as i32,
-                brush_size,
-                brush_mat,
-            );
+            universe.paint(mx / scale, my / scale, brush_size, brush_mat);
         }
         if is_key_pressed(KeyCode::Enter) {
-            universe = Universe::new(screen_width() as i32, screen_height() as i32, scale);
+            universe = Universe::new(screen_width(), screen_height(), scale);
         }
 
         match get_last_key_pressed() {
@@ -77,10 +72,10 @@ async fn main() {
         }
 
         if wy != 0. {
-            brush_size = 5.0f64.max(100.0f64.min(brush_size + 5. * wy as f64));
+            brush_size = 5f32.max(100f32.min(brush_size + 5. * wy));
         }
 
-        draw_circle_lines(mx, my, (brush_size / 2.) as f32, 1., BLACK);
+        draw_circle_lines(mx, my, brush_size / 2., 1., BLACK);
         next_frame().await
     }
 }

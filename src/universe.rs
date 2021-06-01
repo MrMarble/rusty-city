@@ -1,13 +1,10 @@
-use macroquad::prelude::{draw_rectangle, Color};
+use macroquad::prelude::{draw_rectangle, vec2, Color, Vec2};
 
 use crate::{
     cell::{Cell, EMPTY_CELL},
     species::Species,
     utils::value_of,
 };
-
-#[cfg(not(target_arch = "wasm32"))]
-const NTHREADS: usize = 4;
 
 pub struct Universe {
     width: i32,
@@ -19,9 +16,9 @@ pub struct Universe {
 }
 
 impl Universe {
-    pub fn new(width: i32, height: i32, scale: f32) -> Universe {
-        let s_width = width / scale as i32;
-        let s_height = height / scale as i32;
+    pub fn new(width: f32, height: f32, scale: f32) -> Universe {
+        let s_width = (width / scale) as i32;
+        let s_height = (height / scale) as i32;
         let cells = (0..s_width * s_height).map(|_| EMPTY_CELL).collect();
 
         Universe {
@@ -38,65 +35,20 @@ impl Universe {
         for x in 0..self.width {
             for y in 0..self.height {
                 let cell = self.get_cell(x, y);
-                cell.update(self);
+                cell.update(x, y, self);
             }
         }
         self.generation += 1
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn render(&self) {
-        let num_taks_per_thread = self.cells.len() / NTHREADS;
-
-        crossbeam::scope(|scope| {
-            let threads: Vec<_> = self
-                .cells
-                .chunks(num_taks_per_thread)
-                .map(|chunk| {
-                    scope.spawn(move |_| {
-                        chunk.iter().cloned().map(|c| {
-                            if c.specie() != Species::Empty {
-                                let (r, g, b) = value_of(c.specie() as u32);
-                                let (x, y) = c.coords();
-                                return (x as f32, y as f32, Color::new(r, g, b, 1.));
-                            }
-                            (
-                                0.,
-                                0.,
-                                Color {
-                                    ..Default::default()
-                                },
-                            )
-                        })
-                    })
-                })
-                .collect();
-            threads.into_iter().for_each(|t| {
-                t.join().unwrap().for_each(|p| {
-                    if p.0 != 0. {
-                        draw_rectangle(
-                            p.0 * self.scale,
-                            p.1 * self.scale,
-                            self.scale,
-                            self.scale,
-                            p.2,
-                        )
-                    }
-                })
-            });
-        })
-        .unwrap();
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    pub fn render(&self) {
-        for pixel in &self.cells {
-            if pixel.specie() != Species::Empty {
-                let (r, g, b) = value_of(pixel.specie() as u32);
-                let (x, y) = pixel.coords();
+        for (i, cell) in self.cells.iter().enumerate() {
+            if cell.specie() != Species::Empty {
+                let (r, g, b) = value_of(cell.specie() as u32);
+                let pos = self.get_position(i as i32);
                 draw_rectangle(
-                    x as f32 * self.scale,
-                    y as f32 * self.scale,
+                    pos.x * self.scale,
+                    pos.y * self.scale,
                     self.scale,
                     self.scale,
                     Color::new(r, g, b, 1.),
@@ -105,19 +57,19 @@ impl Universe {
         }
     }
 
-    pub fn paint(&mut self, x: i32, y: i32, size: f64, mat: Species) {
-        let radius: f64 = size / 2.0 / self.scale as f64;
+    pub fn paint(&mut self, x: f32, y: f32, size: f32, mat: Species) {
+        let radius = size / 2.0 / self.scale;
 
         let floor = (radius + 1.0) as i32;
         let ciel = (radius + 1.5) as i32;
 
         for dx in -floor..ciel {
             for dy in -floor..ciel {
-                if (((dx * dx) + (dy * dy)) as f64) > (radius * radius) {
+                if ((dx * dx) + (dy * dy)) as f32 > (radius * radius) {
                     continue;
                 };
-                let px = x + dx;
-                let py = y + dy;
+                let px = x as i32 + dx;
+                let py = y as i32 + dy;
 
                 let i = self.get_index(px, py);
 
@@ -125,7 +77,7 @@ impl Universe {
                     continue;
                 }
                 if mat == Species::Empty || self.get_cell(px, py).specie() == Species::Empty {
-                    self.cells[i] = Cell::new(mat, px, py, self.generation)
+                    self.cells[i] = Cell::new(mat, self.generation)
                 }
 
                 if mat == Species::Empty {
@@ -141,21 +93,27 @@ impl Universe {
         self.generation
     }
 
-    pub fn replace_cell(&mut self, a: Cell, b: Cell) {
-        let (a_x, a_y) = a.coords();
-        let (b_x, b_y) = b.coords();
-
-        self.set(a_x, a_y, Cell::new(b.specie(), a_x, a_y, b.clock() + 1));
-        self.set(b_x, b_y, Cell::new(a.specie(), b_x, b_y, a.clock() + 1));
+    pub fn replace_cell(&mut self, a: Vec2, b: Vec2) {
+        let a_cell = self.get_cell(a.x as i32, a.y as i32);
+        let b_cell = self.get_cell(b.x as i32, b.y as i32);
+        self.set(
+            a.x as i32,
+            a.y as i32,
+            Cell::new(b_cell.specie(), b_cell.clock() + 1),
+        );
+        self.set(
+            b.x as i32,
+            b.y as i32,
+            Cell::new(a_cell.specie(), a_cell.clock() + 1),
+        );
     }
 
-    pub fn update_cell(&mut self, dx: i32, dy: i32, cell: Cell) {
-        let (x, y) = cell.coords();
-        self.set(x, y, EMPTY_CELL);
+    pub fn update_cell(&mut self, orig: Vec2, dest: Vec2, cell: Cell) {
+        self.set(orig.x as i32, orig.y as i32, EMPTY_CELL);
         self.set(
-            x + dx,
-            y + dy,
-            Cell::new(cell.specie(), x + dx, y + dy, cell.clock() + 1),
+            (orig.x + dest.x) as i32,
+            (orig.y + dest.y) as i32,
+            Cell::new(cell.specie(), cell.clock() + 1),
         );
     }
 
@@ -166,10 +124,16 @@ impl Universe {
 
     pub fn get_cell(&self, x: i32, y: i32) -> Cell {
         if x >= self.width || x < 0 || y >= self.height || y < 0 {
-            return Cell::new(Species::Wall, x, y, 0);
+            return Cell::new(Species::Wall, 0);
         }
         let i = self.get_index(x, y);
         self.cells[i]
+    }
+
+    pub fn get_position(&self, index: i32) -> Vec2 {
+        let x = index / self.width;
+        let y = index % self.height;
+        vec2(x as f32, y as f32)
     }
 
     fn get_index(&self, x: i32, y: i32) -> usize {
