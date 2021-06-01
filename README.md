@@ -11,3 +11,7 @@ A work in progress sand simulation game
 - `1`: use Sand
 - `2`: use Water
 - `3`: use Wall
+
+## Debug
+
+Click on top of the fps counter to show the debug window
