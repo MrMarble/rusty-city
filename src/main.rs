@@ -7,6 +7,7 @@ mod utils;
 use macroquad::prelude::*;
 use species::Species;
 use universe::Universe;
+use utils::{add, event_distance, norm, scalef, sub};
 
 fn window_conf() -> Conf {
     Conf {
@@ -27,6 +28,8 @@ async fn main() {
 
     let mut running = true;
 
+    let mut last_mouse: (f32, f32) = (0., 0.);
+
     loop {
         let (mx, my) = mouse_position();
 
@@ -39,9 +42,32 @@ async fn main() {
         universe.render();
 
         {
+            if is_mouse_button_pressed(MouseButton::Left) {
+                last_mouse = mouse_position();
+            }
+
             // Inputs
             if is_mouse_button_down(MouseButton::Left) {
-                universe.paint(mx / scale, my / scale, brush_size, brush_mat);
+                let mut mouse = (mx, my);
+                let mut i = 0;
+
+                universe.paint(mouse.0 / scale, mouse.1 / scale, brush_size, brush_mat);
+
+                // Smooth painting... not very pleased with the result
+                while event_distance(mouse, last_mouse) > brush_size / scale {
+                    let d = event_distance(mouse, last_mouse);
+                    println!("{}", d);
+                    mouse = add(
+                        mouse,
+                        scalef(norm(sub(last_mouse, mouse)), (brush_size / scale).min(d)),
+                    );
+                    i += 1;
+                    if i > 15 {
+                        break;
+                    }
+                    universe.paint(mouse.0 / scale, mouse.1 / scale, brush_size, brush_mat);
+                }
+                last_mouse = mouse;
             }
 
             match get_last_key_pressed() {
