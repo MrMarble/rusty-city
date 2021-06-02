@@ -72,15 +72,18 @@ impl Universe {
                 let py = y as i32 + dy;
 
                 let i = self.get_index(px, py);
+                let current_specie = self.get_cell(px, py).specie();
 
-                if px < 0 || px > self.width - 1 || py < 0 || py > self.height - 1 {
+                if px < 0
+                    || px > self.width - 1
+                    || py < 0
+                    || py > self.height - 1
+                    || mat == current_specie
+                {
                     continue;
                 }
 
-                let current_specie = self.get_cell(px, py).specie();
-                if mat == current_specie {
-                    continue;
-                } else {
+                if current_specie == Species::Empty || mat == Species::Empty {
                     self.cells[i] = Cell::new(mat, self.generation)
                 }
 
