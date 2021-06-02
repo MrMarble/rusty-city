@@ -24,12 +24,18 @@ async fn main() {
     let scale: f32 = 5.;
     let mut brush_mat = Species::Sand;
     let mut universe = Universe::new(screen_width(), screen_height(), scale);
+
+    let mut running = true;
+
     loop {
         let (mx, my) = mouse_position();
 
         clear_background(WHITE);
 
-        universe.tick();
+        if running {
+            universe.tick();
+        }
+
         universe.render();
 
         {
@@ -37,15 +43,16 @@ async fn main() {
             if is_mouse_button_down(MouseButton::Left) {
                 universe.paint(mx / scale, my / scale, brush_size, brush_mat);
             }
-            if is_key_pressed(KeyCode::Enter) {
-                universe = Universe::new(screen_width(), screen_height(), scale);
-            }
 
             match get_last_key_pressed() {
                 Some(KeyCode::Key0) => brush_mat = Species::Empty,
                 Some(KeyCode::Key1) => brush_mat = Species::Sand,
                 Some(KeyCode::Key2) => brush_mat = Species::Water,
                 Some(KeyCode::Key3) => brush_mat = Species::Wall,
+                Some(KeyCode::Space) => running ^= true,
+                Some(KeyCode::Enter) => {
+                    universe = Universe::new(screen_width(), screen_height(), scale)
+                }
                 _ => {}
             }
         }
