@@ -11,6 +11,7 @@ A work in progress sand simulation game
 - `1`: use Sand
 - `2`: use Water
 - `3`: use Wall
+- `Space` Pause
 
 ## Debug
 
