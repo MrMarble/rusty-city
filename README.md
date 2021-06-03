@@ -12,6 +12,7 @@ A work in progress sand simulation game
 - `2`: use Water
 - `3`: use Wall
 - `Space` Pause
+- `Right Arrow` Next Frame (only when paused)
 
 ## Debug
 
