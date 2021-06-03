@@ -35,9 +35,7 @@ async fn main() {
 
         clear_background(WHITE);
 
-        if running {
-            universe.tick();
-        } else if is_key_pressed(KeyCode::Right) {
+        if running || is_key_pressed(KeyCode::Right) {
             universe.tick();
         }
 

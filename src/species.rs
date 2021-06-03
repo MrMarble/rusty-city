@@ -3,11 +3,7 @@ use macroquad::{
     rand::gen_range,
 };
 
-use crate::{
-    cell::{Cell, EMPTY_CELL},
-    universe::Universe,
-    utils::{rand_dir, rand_dir_2},
-};
+use crate::{universe::Universe, utils::rand_dir_2};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[repr(u32)]
@@ -30,9 +26,6 @@ impl Species {
 
 fn update_sand(x: i32, y: i32, universe: &mut Universe) {
     let mut cell = universe.get_cell(x, y);
-    if cell.clock() - universe.generation() == 1 {
-        return;
-    }
 
     let dx = rand_dir_2();
     let nbr = universe.get_cell(x, y + 1);
@@ -56,7 +49,6 @@ fn update_sand(x: i32, y: i32, universe: &mut Universe) {
     if universe.in_bounds(vi_x, vi_y)
         && (universe.is_empty(vi_x, vi_y)
             || (universe.get_cell(vi_x, vi_y).specie() == Species::Water
-                && universe.get_cell(vi_x, vi_y).clock() - universe.generation() != 1
                 && universe.get_cell(vi_x, vi_y).velocity.length() - cell.velocity.length()
                     > universe.gravity()))
     {
@@ -66,59 +58,91 @@ fn update_sand(x: i32, y: i32, universe: &mut Universe) {
             let rand_x = gen_range(-2, 2);
             dest_cell.velocity = vec2(rand_x as f32, -4.);
 
-            universe.set(vi_x, vi_y, Cell::from(cell));
-
+            universe.move_cell(x, y, vi_x, vi_y);
             for y in -10..0 {
                 for x in -10..10 {
                     if universe.is_empty(vi_x + x, vi_y + y) {
-                        universe.set(vi_x + x, vi_y + y, Cell::from(dest_cell));
+                        universe.set(vi_x, vi_y, dest_cell);
+                        universe.move_cell(vi_x, vi_y, vi_x + x, vi_y + y);
                         break;
                     }
                 }
             }
-            // Just in case
-            universe.set(x, y, EMPTY_CELL);
         } else if dest_cell.specie() == Species::Empty {
-            universe.set(vi_x, vi_y, Cell::from(cell));
-            universe.set(x, y, Cell::from(dest_cell));
+            universe.set(x, y, cell);
+            universe.move_cell(x, y, vi_x, vi_y);
         }
-    } else {
-        if nbr.specie() == Species::Empty {
-            universe.update_cell(vec2(x as f32, y as f32), vec2(0., 1.), cell);
-        } else if universe.get_cell(x + dx, y + 1).specie() == Species::Empty {
-            universe.update_cell(vec2(x as f32, y as f32), vec2(dx as f32, 1.), cell);
-        } else if nbr.specie() == Species::Water {
-            universe.replace_cell(vec2(x as f32, y as f32), vec2(x as f32, (y + 1) as f32));
-        }
+    } else if nbr.specie() == Species::Empty {
+        cell.velocity.y += universe.gravity() * time_delta;
+        universe.set(x, y, cell);
+
+        universe.move_cell(x, y, x, y + 1);
+    } else if universe.get_cell(x + dx, y + 1).specie() == Species::Empty
+        || nbr.specie() == Species::Water
+    {
+        cell.velocity.y += universe.gravity() * time_delta;
+
+        universe.set(x, y, cell);
+
+        universe.move_cell(x, y, x + dx, y + 1);
     }
 }
 
 fn update_water(x: i32, y: i32, universe: &mut Universe) {
-    let cell = universe.get_cell(x, y);
-    if cell.clock() - universe.generation() == 1 {
-        return;
+    let mut cell = universe.get_cell(x, y);
+
+    let fall_rate = 2;
+    let spread_rate = 5;
+    let rand_spread = if rand_dir_2() == 1 {
+        spread_rate
+    } else {
+        -spread_rate
+    };
+
+    // update velocity
+    let time_delta = get_frame_time();
+    cell.velocity.y = (cell.velocity.y + universe.gravity() * time_delta)
+        .clamp(-universe.gravity(), universe.gravity());
+
+    if universe.in_bounds(x, y + 1) && !universe.is_empty(x, y + 1) {
+        cell.velocity.y /= 2.;
     }
 
-    let dx = rand_dir();
+    let vi_x = x + cell.velocity.x as i32;
+    let vi_y = y + cell.velocity.y as i32;
 
-    let below = universe.get_cell(x, y + 1);
-    let dx1 = universe.get_cell(x + dx, y + 1);
-    let dx0 = universe.get_cell(x + dx, y);
-
-    // below
-    if below.specie() == Species::Empty {
-        universe.update_cell(vec2(x as f32, y as f32), vec2(0., 1.), cell);
-    // below left/right
-    } else if dx1.specie() == Species::Empty {
-        universe.update_cell(vec2(x as f32, y as f32), vec2(dx as f32, 1.), cell);
-    // below left/right
-    } else if universe.get_cell(x + -dx, y + 1).specie() == Species::Empty {
-        universe.update_cell(vec2(x as f32, y as f32), vec2(-dx as f32, 1.), cell);
-    // left/right
-    } else if dx0.specie() == Species::Empty {
-        universe.update_cell(vec2(x as f32, y as f32), vec2(dx as f32, 0.), cell);
-    // left/right
-    } else if universe.get_cell(x + -dx, y).specie() == Species::Empty {
-        universe.update_cell(vec2(x as f32, y as f32), vec2(-dx as f32, 0.), cell);
+    // Physics using velocity
+    universe.set(x, y, cell);
+    if universe.in_bounds(vi_x, vi_y) && universe.is_empty(vi_x, vi_y) {
+        universe.move_cell(x, y, vi_x, vi_y);
+    } else if universe.is_empty(x, y + fall_rate) {
+        universe.move_cell(x, y, x, y + fall_rate);
+    } else if universe.is_empty(x + rand_spread, y + fall_rate) {
+        universe.move_cell(x, y, x + rand_spread, y + fall_rate);
+    } else if universe.is_empty(x + -rand_spread, y + fall_rate) {
+        universe.move_cell(x, y, x + -rand_spread, y + fall_rate);
+    } else if universe.in_bounds(x, y + fall_rate) && universe.is_empty(x, y + fall_rate) {
+        universe.move_cell(x, y, x, y + fall_rate);
+    } else if universe.in_bounds(x + -rand_spread, y + fall_rate)
+        && universe.is_empty(x + -rand_spread, y + fall_rate)
+    {
+        universe.move_cell(x, y, x + -rand_spread, y + fall_rate);
+    } else if universe.in_bounds(x + rand_spread, y + fall_rate)
+        && universe.is_empty(x + rand_spread, y + fall_rate)
+    {
+        universe.move_cell(x, y, x + rand_spread, y + fall_rate);
+    } else {
+        for i_y in 0..fall_rate {
+            for i_x in (0..spread_rate).rev() {
+                if universe.in_bounds(x - i_x, y + i_y) && universe.is_empty(x - i_x, y + i_y) {
+                    universe.move_cell(x, y, x - i_x, y + i_y);
+                    break;
+                }
+                if universe.in_bounds(x + i_x, y + i_y) && universe.is_empty(x + i_x, y + i_y) {
+                    universe.move_cell(x, y, x + i_x, y + i_y);
+                    break;
+                }
+            }
+        }
     }
 }
