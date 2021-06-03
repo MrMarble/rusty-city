@@ -37,6 +37,8 @@ async fn main() {
 
         if running {
             universe.tick();
+        } else if is_key_pressed(KeyCode::Right) {
+            universe.tick();
         }
 
         universe.render();
