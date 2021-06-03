@@ -56,7 +56,6 @@ async fn main() {
                 // Smooth painting... not very pleased with the result
                 while event_distance(mouse, last_mouse) > brush_size / scale {
                     let d = event_distance(mouse, last_mouse);
-                    println!("{}", d);
                     mouse = add(
                         mouse,
                         scalef(norm(sub(last_mouse, mouse)), (brush_size / scale).min(d)),
