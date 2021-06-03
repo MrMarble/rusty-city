@@ -1,4 +1,7 @@
-use macroquad::prelude::{draw_rectangle, vec2, Color, Vec2};
+use macroquad::{
+    prelude::{draw_rectangle, vec2, Color, Vec2},
+    rand::gen_range,
+};
 
 use crate::{
     cell::{Cell, EMPTY_CELL},
@@ -12,6 +15,7 @@ pub struct Universe {
     cells: Vec<Cell>,
     generation: i32,
     scale: f32,
+    gravity: f32,
     pub non_empty_cells: u32,
 }
 
@@ -27,6 +31,7 @@ impl Universe {
             cells,
             scale,
             generation: 0,
+            gravity: 10.,
             non_empty_cells: 0,
         }
     }
@@ -84,7 +89,11 @@ impl Universe {
                 }
 
                 if current_specie == Species::Empty || mat == Species::Empty {
-                    self.cells[i] = Cell::new(mat, self.generation)
+                    self.cells[i] = Cell::new(
+                        mat,
+                        self.generation,
+                        vec2(gen_range(-1., 1.), gen_range(-2., 5.)),
+                    )
                 }
 
                 if mat == Species::Empty {
@@ -100,18 +109,22 @@ impl Universe {
         self.generation
     }
 
+    pub fn gravity(&self) -> f32 {
+        self.gravity
+    }
+
     pub fn replace_cell(&mut self, a: Vec2, b: Vec2) {
         let a_cell = self.get_cell(a.x as i32, a.y as i32);
         let b_cell = self.get_cell(b.x as i32, b.y as i32);
         self.set(
             a.x as i32,
             a.y as i32,
-            Cell::new(b_cell.specie(), b_cell.clock() + 1),
+            Cell::new(b_cell.specie(), b_cell.clock() + 1, b_cell.velocity),
         );
         self.set(
             b.x as i32,
             b.y as i32,
-            Cell::new(a_cell.specie(), a_cell.clock() + 1),
+            Cell::new(a_cell.specie(), a_cell.clock() + 1, a_cell.velocity),
         );
     }
 
@@ -120,7 +133,7 @@ impl Universe {
         self.set(
             (orig.x + dest.x) as i32,
             (orig.y + dest.y) as i32,
-            Cell::new(cell.specie(), cell.clock() + 1),
+            Cell::new(cell.specie(), cell.clock() + 1, cell.velocity),
         );
     }
 
@@ -131,7 +144,7 @@ impl Universe {
 
     pub fn get_cell(&self, x: i32, y: i32) -> Cell {
         if x >= self.width || x < 0 || y >= self.height || y < 0 {
-            return Cell::new(Species::Wall, 0);
+            return Cell::new(Species::Wall, 0, vec2(0., 0.));
         }
         let i = self.get_index(x, y);
         self.cells[i]
@@ -145,6 +158,13 @@ impl Universe {
 
     fn get_index(&self, x: i32, y: i32) -> usize {
         (x + self.width * y) as usize
+    }
+
+    pub fn in_bounds(&self, x: i32, y: i32) -> bool {
+        x < self.width && y < self.height
+    }
+    pub fn is_empty(&self, x: i32, y: i32) -> bool {
+        self.in_bounds(x, y) && self.get_cell(x, y).specie() == Species::Empty
     }
 }
 
