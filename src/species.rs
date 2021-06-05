@@ -82,14 +82,12 @@ fn update_sand(x: i32, y: i32, universe: &mut Universe) {
             universe.set(vi_x, vi_y, Cell::from(cell));
             universe.set(x, y, Cell::from(dest_cell));
         }
-    } else {
-        if nbr.specie() == Species::Empty {
-            universe.update_cell(vec2(x as f32, y as f32), vec2(0., 1.), cell);
-        } else if universe.get_cell(x + dx, y + 1).specie() == Species::Empty {
-            universe.update_cell(vec2(x as f32, y as f32), vec2(dx as f32, 1.), cell);
-        } else if nbr.specie() == Species::Water {
-            universe.replace_cell(vec2(x as f32, y as f32), vec2(x as f32, (y + 1) as f32));
-        }
+    } else if nbr.specie() == Species::Empty {
+        universe.update_cell(vec2(x as f32, y as f32), vec2(0., 1.), cell);
+    } else if universe.get_cell(x + dx, y + 1).specie() == Species::Empty {
+        universe.update_cell(vec2(x as f32, y as f32), vec2(dx as f32, 1.), cell);
+    } else if nbr.specie() == Species::Water {
+        universe.replace_cell(vec2(x as f32, y as f32), vec2(x as f32, (y + 1) as f32));
     }
 }
 

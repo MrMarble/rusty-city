@@ -13,8 +13,8 @@ impl Cell {
     pub fn new(specie: Species, clock: i32, velocity: Vec2) -> Cell {
         Cell {
             specie,
-            clock,
             velocity,
+            clock,
         }
     }
     pub fn from(c: Cell) -> Self {
