@@ -13,7 +13,6 @@ pub struct Universe {
     width: i32,
     height: i32,
     cells: Vec<Cell>,
-    changes: Vec<(usize, usize)>,
     generation: i32,
     scale: f32,
     gravity: f32,
@@ -30,48 +29,11 @@ impl Universe {
             width: s_width,
             height: s_height,
             cells,
-            changes: vec![],
             scale,
             generation: 0,
             gravity: 10.,
             non_empty_cells: 0,
         }
-    }
-
-    pub fn move_cell(&mut self, x: i32, y: i32, xto: i32, yto: i32) {
-        self.changes
-            .push((self.get_index(xto, yto), self.get_index(x, y)));
-    }
-
-    pub fn commit_changes(&mut self) {
-        if self.changes.is_empty() {
-            return;
-        }
-
-        let mut i = 0;
-        while i < self.changes.len() - 1 {
-            let specie = self.cells[self.changes[i as usize].0].specie();
-            if specie != Species::Empty && specie != Species::Water {
-                self.changes[i as usize] = self.changes.pop().unwrap();
-            } else {
-                i += 1;
-            }
-        }
-
-        self.changes.sort_by(|a, b| a.0.cmp(&b.0));
-
-        let mut i_prev = 0;
-        self.changes.push((0, 0));
-        for i in 0..self.changes.len() - 1 {
-            if self.changes[i + 1].0 != self.changes[i].0 {
-                let r = i_prev + gen_range(0, i - i_prev);
-                let dst = self.changes[r].0;
-                let src = self.changes[r].1;
-                self.cells.swap(dst, src);
-                i_prev = i + 1;
-            }
-        }
-        self.changes.clear();
     }
 
     pub fn tick(&mut self) {
@@ -81,8 +43,7 @@ impl Universe {
                 cell.update(x, y, self);
             }
         }
-        self.generation += 1;
-        self.commit_changes();
+        self.generation += 1
     }
 
     pub fn render(&self) {
@@ -128,7 +89,11 @@ impl Universe {
                 }
 
                 if current_specie == Species::Empty || mat == Species::Empty {
-                    self.cells[i] = Cell::new(mat, vec2(gen_range(-1., 1.), gen_range(-2., 5.)))
+                    self.cells[i] = Cell::new(
+                        mat,
+                        self.generation,
+                        vec2(gen_range(-1., 1.), gen_range(-2., 5.)),
+                    )
                 }
 
                 if mat == Species::Empty {
@@ -148,6 +113,30 @@ impl Universe {
         self.gravity
     }
 
+    pub fn replace_cell(&mut self, a: Vec2, b: Vec2) {
+        let a_cell = self.get_cell(a.x as i32, a.y as i32);
+        let b_cell = self.get_cell(b.x as i32, b.y as i32);
+        self.set(
+            a.x as i32,
+            a.y as i32,
+            Cell::new(b_cell.specie(), b_cell.clock() + 1, b_cell.velocity),
+        );
+        self.set(
+            b.x as i32,
+            b.y as i32,
+            Cell::new(a_cell.specie(), a_cell.clock() + 1, a_cell.velocity),
+        );
+    }
+
+    pub fn update_cell(&mut self, orig: Vec2, dest: Vec2, cell: Cell) {
+        self.set(orig.x as i32, orig.y as i32, EMPTY_CELL);
+        self.set(
+            (orig.x + dest.x) as i32,
+            (orig.y + dest.y) as i32,
+            Cell::new(cell.specie(), cell.clock() + 1, cell.velocity),
+        );
+    }
+
     pub fn set(&mut self, x: i32, y: i32, cell: Cell) {
         let index = self.get_index(x, y);
         self.cells[index] = cell;
@@ -155,7 +144,7 @@ impl Universe {
 
     pub fn get_cell(&self, x: i32, y: i32) -> Cell {
         if x >= self.width || x < 0 || y >= self.height || y < 0 {
-            return Cell::new(Species::Wall, vec2(0., 0.));
+            return Cell::new(Species::Wall, 0, vec2(0., 0.));
         }
         let i = self.get_index(x, y);
         self.cells[i]

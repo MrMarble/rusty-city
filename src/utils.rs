@@ -7,6 +7,10 @@ pub fn value_of(color: u32) -> (f32, f32, f32) {
     (r, g, b)
 }
 
+pub fn rand_dir() -> i32 {
+    (rand() as i32 % 3) - 1
+}
+
 pub fn rand_dir_2() -> i32 {
     if (rand() % 2) == 0 {
         -1
@@ -16,7 +20,7 @@ pub fn rand_dir_2() -> i32 {
 }
 
 pub fn event_distance(a: (f32, f32), b: (f32, f32)) -> f32 {
-    ((a.0 - b.0).powf(2.) + (a.1 - b.1).powf(2.)).sqrt()
+    ((a.0 - b.0).powf(2.) + (b.1 - b.1).powf(2.)).sqrt()
 }
 
 pub fn add(a: (f32, f32), b: (f32, f32)) -> (f32, f32) {
